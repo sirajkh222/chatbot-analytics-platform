@@ -1,0 +1,579 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Maple Community Services - Chatbot Business Analytics",
+    "tags": ["maple", "chatbot", "business", "ndis", "leads", "agents"],
+    "style": "dark",
+    "timezone": "Australia/Sydney",
+    "refresh": "5m",
+    "time": {
+      "from": "now-30d",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "User Journey Funnel - Real Business Metrics",
+        "type": "stat",
+        "targets": [
+          {
+            "rawSql": "SELECT 'Page Loads' as metric, COUNT(\"pageLoaded\") as value FROM \"UserEvents\" WHERE \"clientId\" = 'maplecommunity' AND $__timeFilter(\"createdAt\") UNION ALL SELECT 'Widget Opens' as metric, COUNT(\"widgetOpened\") as value FROM \"UserEvents\" WHERE \"clientId\" = 'maplecommunity' AND $__timeFilter(\"createdAt\") UNION ALL SELECT 'Human Requests' as metric, COUNT(\"requestedHuman\") as value FROM \"UserEvents\" WHERE \"clientId\" = 'maplecommunity' AND $__timeFilter(\"createdAt\") UNION ALL SELECT 'Accept Presses' as metric, COUNT(\"pressedAccept\") as value FROM \"UserEvents\" WHERE \"clientId\" = 'maplecommunity' AND $__timeFilter(\"createdAt\") UNION ALL SELECT 'Callback Requests' as metric, COUNT(\"pressedCallback\") as value FROM \"UserEvents\" WHERE \"clientId\" = 'maplecommunity' AND $__timeFilter(\"createdAt\")",
+            "format": "table",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "mappings": [],
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "#FDC200",
+                  "value": null
+                },
+                {
+                  "color": "green",
+                  "value": 50
+                }
+              ]
+            },
+            "color": {
+              "mode": "palette-classic"
+            }
+          }
+        },
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "orientation": "horizontal",
+          "textMode": "value_and_name",
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center"
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "Conversion Rates - Key Business KPIs",
+        "type": "bargauge",
+        "targets": [
+          {
+            "rawSql": "SELECT 'Page → Widget' as conversion, ROUND((COUNT(\"widgetOpened\")::float / NULLIF(COUNT(\"pageLoaded\"), 0)) * 100, 2) as rate FROM \"UserEvents\" WHERE \"clientId\" = 'maplecommunity' AND $__timeFilter(\"createdAt\") UNION ALL SELECT 'Widget → Human Request' as conversion, ROUND((COUNT(\"requestedHuman\")::float / NULLIF(COUNT(\"widgetOpened\"), 0)) * 100, 2) as rate FROM \"UserEvents\" WHERE \"clientId\" = 'maplecommunity' AND $__timeFilter(\"createdAt\") UNION ALL SELECT 'Request → Accept/Callback' as conversion, ROUND(((COUNT(\"pressedAccept\") + COUNT(\"pressedCallback\"))::float / NULLIF(COUNT(\"requestedHuman\"), 0)) * 100, 2) as rate FROM \"UserEvents\" WHERE \"clientId\" = 'maplecommunity' AND $__timeFilter(\"createdAt\")",
+            "format": "table",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 25
+                },
+                {
+                  "color": "#FDC200",
+                  "value": 50
+                },
+                {
+                  "color": "green",
+                  "value": 75
+                }
+              ]
+            }
+          }
+        },
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "horizontal",
+          "displayMode": "gradient",
+          "showUnfilled": true
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "id": 3,
+        "title": "Lead Generation Performance - Your Business Results",
+        "type": "timeseries",
+        "targets": [
+          {
+            "rawSql": "SELECT $__timeGroup(\"capturedAt\" AT TIME ZONE 'Australia/Sydney','1d') as time, COUNT(*) as \"Total Leads\", COUNT(CASE WHEN source = 'chatbot' THEN 1 END) as \"Chatbot Leads\", COUNT(CASE WHEN source = 'callback' THEN 1 END) as \"Callback Leads\", COUNT(CASE WHEN \"salesforceSynced\" = true THEN 1 END) as \"Synced to Salesforce\" FROM \"Leads\" WHERE \"clientId\" = 'maplecommunity' AND $__timeFilter(\"capturedAt\") GROUP BY 1 ORDER BY 1",
+            "format": "time_series",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "fillOpacity": 20,
+              "gradientMode": "opacity",
+              "spanNulls": false,
+              "insertNulls": false,
+              "showPoints": "auto",
+              "pointSize": 5,
+              "stacking": {
+                "mode": "none",
+                "group": "A"
+              }
+            },
+            "unit": "short",
+            "min": 0,
+            "color": {
+              "mode": "palette-classic"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Total Leads"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "#FDC200"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "tooltip": {
+            "mode": "multi",
+            "sort": "desc"
+          },
+          "legend": {
+            "calcs": ["sum", "mean"],
+            "displayMode": "table",
+            "placement": "bottom"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Agent Performance - Human Handoff Analytics",
+        "type": "table",
+        "targets": [
+          {
+            "rawSql": "SELECT \"agentName\", COUNT(*) as \"Total Sessions\", ROUND(AVG(\"waitingDuration\"), 2) as \"Avg Wait Time (s)\", ROUND(AVG(\"sessionDuration\"), 2) as \"Avg Session Length (s)\", COUNT(CASE WHEN \"disconnectionReason\" = 'agent_ended' THEN 1 END) as \"Agent Ended\", COUNT(CASE WHEN \"disconnectionReason\" = 'user_left' THEN 1 END) as \"User Left\", COUNT(CASE WHEN status = 'timeout' THEN 1 END) as \"Timeouts\" FROM \"AgentConnections\" WHERE \"clientId\" = 'maplecommunity' AND $__timeFilter(\"connectedAt\") GROUP BY \"agentName\" ORDER BY COUNT(*) DESC",
+            "format": "table",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "center",
+              "cellOptions": {
+                "type": "auto"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                }
+              ]
+            },
+            "unit": "short"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Avg Wait Time (s)"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "s"
+                },
+                {
+                  "id": "thresholds",
+                  "value": {
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "yellow",
+                        "value": 30
+                      },
+                      {
+                        "color": "red",
+                        "value": 120
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Avg Session Length (s)"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "s"
+                }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "showHeader": true,
+          "cellHeight": "sm",
+          "footer": {
+            "show": true,
+            "reducer": ["sum"],
+            "countRows": false
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 16
+        }
+      },
+      {
+        "id": 5,
+        "title": "Daily Activity Patterns (AEST)",
+        "type": "heatmap",
+        "targets": [
+          {
+            "rawSql": "SELECT $__timeGroup(\"createdAt\" AT TIME ZONE 'Australia/Sydney','1h') as time, EXTRACT(hour FROM \"createdAt\" AT TIME ZONE 'Australia/Sydney') as hour, COUNT(\"widgetOpened\") as count FROM \"UserEvents\" WHERE \"clientId\" = 'maplecommunity' AND $__timeFilter(\"createdAt\") GROUP BY 1, 2 ORDER BY 1",
+            "format": "time_series_buckets",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "scaleDistribution": {
+                "type": "linear"
+              }
+            }
+          }
+        },
+        "options": {
+          "calculate": false,
+          "cellGap": 2,
+          "cellValues": {},
+          "color": {
+            "exponent": 0.5,
+            "fill": "#FDC200",
+            "mode": "spectrum",
+            "reverse": false,
+            "scale": "exponential",
+            "scheme": "Oranges",
+            "steps": 64
+          },
+          "exemplars": {
+            "color": "rgba(255,0,255,0.7)"
+          },
+          "filterValues": {
+            "le": 1e-9
+          },
+          "legend": {
+            "show": true
+          },
+          "rowsFrame": {
+            "layout": "auto"
+          },
+          "tooltip": {
+            "show": true,
+            "yHistogram": true
+          },
+          "yAxis": {
+            "axisPlacement": "left",
+            "reverse": false,
+            "unit": "short"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 24
+        }
+      },
+      {
+        "id": 6,
+        "title": "Content Engagement - Popular Links",
+        "type": "piechart",
+        "targets": [
+          {
+            "rawSql": "SELECT url, COUNT(*) as clicks FROM \"LinksClicked\" WHERE \"clientId\" = 'maplecommunity' AND $__timeFilter(\"dateCreated\") GROUP BY url ORDER BY clicks DESC LIMIT 10",
+            "format": "table",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "unit": "short",
+            "custom": {
+              "hideFrom": {
+                "tooltip": false,
+                "vis": false,
+                "legend": false
+              }
+            }
+          }
+        },
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "pieType": "pie",
+          "tooltip": {
+            "mode": "single",
+            "sort": "desc"
+          },
+          "legend": {
+            "displayMode": "visible",
+            "placement": "bottom",
+            "showLegend": true,
+            "values": ["value", "percent"]
+          },
+          "displayLabels": ["name", "value"]
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 24
+        }
+      },
+      {
+        "id": 7,
+        "title": "Conversation Analytics - Message Types Over Time",
+        "type": "timeseries",
+        "targets": [
+          {
+            "rawSql": "SELECT $__timeGroup(\"timestamp\" AT TIME ZONE 'Australia/Sydney','1d') as time, COUNT(CASE WHEN \"messageType\" = 'user' THEN 1 END) as \"User Messages\", COUNT(CASE WHEN \"messageType\" = 'bot' THEN 1 END) as \"Bot Messages\", COUNT(CASE WHEN \"messageType\" = 'human' THEN 1 END) as \"Human Messages\", COUNT(CASE WHEN \"messageType\" = 'system' THEN 1 END) as \"System Messages\" FROM \"ChatLogs\" WHERE \"clientId\" = 'maplecommunity' AND $__timeFilter(\"timestamp\") GROUP BY 1 ORDER BY 1",
+            "format": "time_series",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "barAlignment": 0,
+              "lineWidth": 2,
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "spanNulls": false,
+              "insertNulls": false,
+              "showPoints": "never",
+              "pointSize": 5,
+              "stacking": {
+                "mode": "normal",
+                "group": "A"
+              }
+            },
+            "mappings": [],
+            "unit": "short",
+            "min": 0
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Bot Messages"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "#FDC200"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Human Messages"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "#2196F3"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "tooltip": {
+            "mode": "multi",
+            "sort": "desc"
+          },
+          "legend": {
+            "calcs": ["sum"],
+            "displayMode": "table",
+            "placement": "bottom",
+            "showLegend": true
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 32
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "selected": false,
+            "text": "30",
+            "value": "30"
+          },
+          "hide": 0,
+          "includeAll": false,
+          "label": "Days",
+          "multi": false,
+          "name": "days",
+          "options": [
+            {
+              "selected": false,
+              "text": "7",
+              "value": "7"
+            },
+            {
+              "selected": false,
+              "text": "14",
+              "value": "14"
+            },
+            {
+              "selected": true,
+              "text": "30",
+              "value": "30"
+            },
+            {
+              "selected": false,
+              "text": "90",
+              "value": "90"
+            }
+          ],
+          "query": "7,14,30,90",
+          "queryType": "",
+          "skipUrlSync": false,
+          "type": "custom"
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "#FDC200",
+          "name": "Annotations & Alerts",
+          "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
+          },
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "links": [],
+    "liveNow": false,
+    "schemaVersion": 37,
+    "version": 1,
+    "weekStart": ""
+  },
+  "meta": {
+    "type": "db",
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true,
+    "canStar": true,
+    "slug": "maple-business-dashboard",
+    "url": "/d/maple/maple-community-services-chatbot-business-analytics",
+    "expires": "0001-01-01T00:00:00Z",
+    "created": "2024-01-01T00:00:00Z",
+    "updated": "2024-01-01T00:00:00Z",
+    "updatedBy": "admin",
+    "createdBy": "admin",
+    "version": 1,
+    "hasAcl": false,
+    "isFolder": false,
+    "folderId": 0,
+    "folderTitle": "General",
+    "folderUrl": "",
+    "provisioned": true,
+    "provisionedExternalId": "maple-business-dashboard.json"
+  }
+}

@@ -1,0 +1,45 @@
+apiVersion: 1
+
+datasources:
+  - name: Maple PostgreSQL
+    type: postgres
+    access: proxy
+    url: ${MAPLE_DB_HOST}:${MAPLE_DB_PORT}
+    database: ${MAPLE_DB_NAME}
+    user: ${MAPLE_DB_USER}
+    secureJsonData:
+      password: ${MAPLE_DB_PASSWORD}
+    jsonData:
+      sslmode: require
+      postgresVersion: 1300
+      timescaledb: false
+    orgId: 1
+    version: 1
+    editable: true
+    
+  - name: Client2 PostgreSQL  
+    type: postgres
+    access: proxy
+    url: ${CLIENT2_DB_HOST}:${CLIENT2_DB_PORT}
+    database: ${CLIENT2_DB_NAME}
+    user: ${CLIENT2_DB_USER}
+    secureJsonData:
+      password: ${CLIENT2_DB_PASSWORD}
+    jsonData:
+      sslmode: require
+      postgresVersion: 1300
+      timescaledb: false
+    orgId: 2
+    version: 1
+    editable: true
+
+  # Analytics API data source
+  - name: Analytics API
+    type: grafana-simple-json-datasource
+    access: proxy
+    url: http://analytics-api:3001/api/maple
+    orgId: 1
+    version: 1
+    editable: true
+    jsonData:
+      httpMethod: GET

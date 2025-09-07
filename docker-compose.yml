@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  analytics-api:
+    build: .
+    ports:
+      - "${PORT:-3001}:${PORT:-3001}"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=${PORT:-3001}
+      - GRAFANA_URL=http://grafana:3000
+      - MAPLE_DATABASE_URL=${MAPLE_DATABASE_URL}
+      - CLIENT2_DATABASE_URL=${CLIENT2_DATABASE_URL}
+      - CLIENT3_DATABASE_URL=${CLIENT3_DATABASE_URL}
+      - GRAFANA_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GRAFANA_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
+    depends_on:
+      - grafana
+    volumes:
+      - ./src:/app/src
+    restart: unless-stopped
+    networks:
+      - analytics-network
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "5000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_USERS_ALLOW_ORG_CREATE=true
+      - GF_USERS_AUTO_ASSIGN_ORG=true
+      - GF_USERS_AUTO_ASSIGN_ORG_ROLE=Editor
+      - GF_SERVER_ROOT_URL=http://localhost:${PORT:-3001}/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+    restart: unless-stopped
+    networks:
+      - analytics-network
+
+volumes:
+  grafana-storage:
+    driver: local
+
+networks:
+  analytics-network:
+    driver: bridge

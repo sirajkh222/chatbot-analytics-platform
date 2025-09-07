@@ -1,0 +1,420 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "User Events Analytics - Chatbot Funnel",
+    "tags": ["chatbot", "user-events", "analytics", "funnel"],
+    "style": "dark",
+    "timezone": "Australia/Sydney",
+    "refresh": "5m",
+    "time": {
+      "from": "now-30d",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Conversion Funnel Overview",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "user_events_funnel_total",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "mappings": [],
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            }
+          }
+        },
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "orientation": "auto",
+          "textMode": "auto",
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto"
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "id": 2,
+        "title": "User Journey Funnel",
+        "type": "piechart",
+        "targets": [
+          {
+            "rawSql": "SELECT 'Page Loads' as metric, COUNT(\"pageLoaded\") as value FROM \"UserEvents\" WHERE $__timeFilter(\"createdAt\") UNION ALL SELECT 'Widget Opens' as metric, COUNT(\"widgetOpened\") as value FROM \"UserEvents\" WHERE $__timeFilter(\"createdAt\") UNION ALL SELECT 'Human Requests' as metric, COUNT(\"requestedHuman\") as value FROM \"UserEvents\" WHERE $__timeFilter(\"createdAt\") UNION ALL SELECT 'Accept Presses' as metric, COUNT(\"pressedAccept\") as value FROM \"UserEvents\" WHERE $__timeFilter(\"createdAt\") UNION ALL SELECT 'Callback Presses' as metric, COUNT(\"pressedCallback\") as value FROM \"UserEvents\" WHERE $__timeFilter(\"createdAt\")",
+            "format": "table",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "unit": "short"
+          }
+        },
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "pieType": "pie",
+          "tooltip": {
+            "mode": "single"
+          },
+          "legend": {
+            "displayMode": "visible",
+            "placement": "bottom"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 3,
+        "title": "Conversion Rates",
+        "type": "bargauge",
+        "targets": [
+          {
+            "rawSql": "SELECT 'Page → Widget' as conversion, ROUND((COUNT(\"widgetOpened\")::float / NULLIF(COUNT(\"pageLoaded\"), 0)) * 100, 2) as rate FROM \"UserEvents\" WHERE $__timeFilter(\"createdAt\") UNION ALL SELECT 'Widget → Human Request' as conversion, ROUND((COUNT(\"requestedHuman\")::float / NULLIF(COUNT(\"widgetOpened\"), 0)) * 100, 2) as rate FROM \"UserEvents\" WHERE $__timeFilter(\"createdAt\") UNION ALL SELECT 'Request → Accept' as conversion, ROUND((COUNT(\"pressedAccept\")::float / NULLIF(COUNT(\"requestedHuman\"), 0)) * 100, 2) as rate FROM \"UserEvents\" WHERE $__timeFilter(\"createdAt\")",
+            "format": "table",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "steps": [
+                {
+                  "color": "red",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 25
+                },
+                {
+                  "color": "green",
+                  "value": 50
+                }
+              ]
+            }
+          }
+        },
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "orientation": "horizontal",
+          "displayMode": "gradient"
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        }
+      },
+      {
+        "id": 4,
+        "title": "Daily User Events Timeline",
+        "type": "timeseries",
+        "targets": [
+          {
+            "rawSql": "SELECT $__timeGroup(\"createdAt\",'1d'), COUNT(\"pageLoaded\") as \"Page Loads\", COUNT(\"widgetOpened\") as \"Widget Opens\", COUNT(\"requestedHuman\") as \"Human Requests\", COUNT(\"pressedAccept\") as \"Accept Presses\", COUNT(\"pressedCallback\") as \"Callback Presses\" FROM \"UserEvents\" WHERE $__timeFilter(\"createdAt\") GROUP BY 1 ORDER BY 1",
+            "format": "time_series",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "barAlignment": 0,
+              "lineWidth": 2,
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "spanNulls": false,
+              "insertNulls": false,
+              "showPoints": "auto",
+              "pointSize": 5,
+              "stacking": {
+                "mode": "none",
+                "group": "A"
+              },
+              "axisPlacement": "auto",
+              "axisLabel": "",
+              "axisColorMode": "text",
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "unit": "short",
+            "min": 0
+          }
+        },
+        "options": {
+          "tooltip": {
+            "mode": "multi",
+            "sort": "none"
+          },
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 16
+        }
+      },
+      {
+        "id": 5,
+        "title": "Hourly Activity Heatmap (Last 7 Days)",
+        "type": "heatmap",
+        "targets": [
+          {
+            "rawSql": "SELECT $__timeGroup(\"createdAt\",'1h') as time, EXTRACT(hour FROM \"createdAt\") as hour, COUNT(\"widgetOpened\") as count FROM \"UserEvents\" WHERE $__timeFilter(\"createdAt\") AND \"createdAt\" >= NOW() - INTERVAL '7 days' GROUP BY 1, 2 ORDER BY 1",
+            "format": "time_series",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "scaleDistribution": {
+                "type": "linear"
+              }
+            }
+          }
+        },
+        "options": {
+          "calculate": false,
+          "cellGap": 2,
+          "cellValues": {},
+          "color": {
+            "exponent": 0.5,
+            "fill": "#FDC200",
+            "mode": "spectrum",
+            "reverse": false,
+            "scale": "exponential",
+            "scheme": "Oranges",
+            "steps": 64
+          },
+          "exemplars": {
+            "color": "rgba(255,0,255,0.7)"
+          },
+          "filterValues": {
+            "le": 1e-9
+          },
+          "legend": {
+            "show": false
+          },
+          "rowsFrame": {
+            "layout": "auto"
+          },
+          "tooltip": {
+            "show": true,
+            "yHistogram": false
+          },
+          "yAxis": {
+            "axisPlacement": "left",
+            "reverse": false,
+            "unit": "short"
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 24
+        }
+      },
+      {
+        "id": 6,
+        "title": "Session Details Table",
+        "type": "table",
+        "targets": [
+          {
+            "rawSql": "SELECT \"sessionId\", \"pageLoaded\", \"widgetOpened\", \"requestedHuman\", \"pressedAccept\", \"pressedCallback\", \"pressedContinue\", \"createdAt\" as \"Session Created\" FROM \"UserEvents\" WHERE $__timeFilter(\"createdAt\") ORDER BY \"createdAt\" DESC LIMIT 100",
+            "format": "table",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "auto",
+              "cellOptions": {
+                "type": "auto"
+              },
+              "inspect": false
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "short"
+          }
+        },
+        "options": {
+          "showHeader": true,
+          "cellHeight": "sm",
+          "footer": {
+            "show": false,
+            "reducer": ["sum"],
+            "countRows": false,
+            "fields": ""
+          }
+        },
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 32
+        }
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "selected": false,
+            "text": "maple",
+            "value": "maple"
+          },
+          "hide": 0,
+          "includeAll": false,
+          "label": "Client",
+          "multi": false,
+          "name": "client",
+          "options": [
+            {
+              "selected": true,
+              "text": "maple",
+              "value": "maple"
+            }
+          ],
+          "query": "maple,client2",
+          "queryType": "",
+          "skipUrlSync": false,
+          "type": "custom"
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "datasource",
+            "uid": "grafana"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "target": {
+            "limit": 100,
+            "matchAny": false,
+            "tags": [],
+            "type": "dashboard"
+          },
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "links": [],
+    "liveNow": false,
+    "panels": [],
+    "schemaVersion": 37,
+    "version": 1,
+    "weekStart": ""
+  },
+  "meta": {
+    "type": "db",
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true,
+    "canStar": true,
+    "slug": "user-events-analytics-chatbot-funnel",
+    "url": "/d/user-events/user-events-analytics-chatbot-funnel",
+    "expires": "0001-01-01T00:00:00Z",
+    "created": "2024-01-01T00:00:00Z",
+    "updated": "2024-01-01T00:00:00Z",
+    "updatedBy": "admin",
+    "createdBy": "admin",
+    "version": 1,
+    "hasAcl": false,
+    "isFolder": false,
+    "folderId": 0,
+    "folderTitle": "General",
+    "folderUrl": "",
+    "provisioned": true,
+    "provisionedExternalId": "user-events-dashboard.json"
+  }
+}
