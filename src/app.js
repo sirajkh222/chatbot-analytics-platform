@@ -112,16 +112,7 @@ app.use('/:clientId/grafana', clientAuth, (req, res, next) => {
 // Direct Grafana access (fallback)
 app.use('/grafana', optionalClientAuth, grafanaProxy);
 
-// Error handling middleware
-app.use((error, req, res, next) => {
-    console.error('Application error:', error);
-    res.status(500).json({
-        error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-    });
-});
-
-// 404 handler
+// 404 handler - MUST be last
 app.use('*', (req, res) => {
     res.status(404).json({
         error: 'Endpoint not found',
@@ -133,6 +124,15 @@ app.use('*', (req, res) => {
             analytics: '/api/:clientId/*',
             grafana: '/:clientId/grafana'
         }
+    });
+});
+
+// Error handling middleware
+app.use((error, req, res, next) => {
+    console.error('Application error:', error);
+    res.status(500).json({
+        error: 'Internal server error',
+        message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
     });
 });
 
