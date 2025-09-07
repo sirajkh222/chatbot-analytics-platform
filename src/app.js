@@ -66,6 +66,10 @@ app.get('/api/:clientId/test', clientAuth, analyticsController.testDataSource);
 const grafanaProxy = createProxyMiddleware({
     target: process.env.GRAFANA_URL || 'http://localhost:3000',
     changeOrigin: true,
+    ws: true,
+    secure: true,
+    cookieDomainRewrite: false,
+    cookiePathRewrite: false,
     pathRewrite: (path, req) => {
         // Extract client ID from path
         const clientId = req.params.clientId;
@@ -77,6 +81,16 @@ const grafanaProxy = createProxyMiddleware({
         // Add client context to Grafana requests
         if (req.clientId) {
             proxyReq.setHeader('X-Client-Id', req.clientId);
+        }
+        // Forward all cookies
+        if (req.headers.cookie) {
+            proxyReq.setHeader('Cookie', req.headers.cookie);
+        }
+    },
+    onProxyRes: (proxyRes, req, res) => {
+        // Forward Set-Cookie headers
+        if (proxyRes.headers['set-cookie']) {
+            res.setHeader('Set-Cookie', proxyRes.headers['set-cookie']);
         }
     },
     onError: (err, req, res) => {
